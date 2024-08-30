@@ -23,7 +23,6 @@ use crate::{
     NonMembershipProof, PrefixOrdering, SiblingProof, SingleAppendOnlyProof, SizeOf, ARITY,
 };
 use async_recursion::async_recursion;
-use log::info;
 use std::cmp::Ordering;
 #[cfg(feature = "greedy_lookup_preload")]
 use std::collections::HashSet;
@@ -72,7 +71,7 @@ fn get_parallel_levels() -> Option<u8> {
         // executed in parallel is the log2 of the number of available threads.
         let parallel_levels = (available_parallelism as f32).log2().ceil() as u8;
 
-        info!(
+        log::info!(
             "Insert will be performed in parallel (available parallelism: {}, parallel levels: {})",
             available_parallelism, parallel_levels
         );
@@ -328,7 +327,7 @@ impl Azks {
             // update the number of nodes
             self.num_nodes += num_inserted;
 
-            info!("Batch insert completed ({} new nodes)", num_inserted);
+            log::info!("Batch insert completed ({} new nodes)", num_inserted);
         }
 
         Ok(())
@@ -648,7 +647,7 @@ impl Azks {
         azks_element_set: &AzksElementSet,
     ) -> Result<u64, AkdError> {
         if !storage.has_cache() {
-            info!("No cache found, skipping preload");
+            log::debug!("No cache found, skipping preload");
             return Ok(0);
         }
 
@@ -676,7 +675,7 @@ impl Azks {
                 .collect();
         }
 
-        info!("Preload of tree ({} nodes) completed", load_count);
+        log::debug!("Preload of tree ({} nodes) completed", load_count);
 
         Ok(load_count)
     }
@@ -792,12 +791,12 @@ impl Azks {
             .await;
             let load_count = fallable_load_count?;
             if let Some(time) = time_s {
-                info!(
+                log::info!(
                     "Preload of nodes for audit ({} objects loaded), took {} s",
                     load_count, time,
                 );
             } else {
-                info!(
+                log::info!(
                     "Preload of nodes for audit ({} objects loaded) completed.",
                     load_count
                 );
@@ -814,7 +813,7 @@ impl Azks {
                 get_parallel_levels(),
             )
             .await?;
-            info!("Generated audit proof for {} -> {}", ep, ep + 1);
+            log::info!("Generated audit proof for {} -> {}", ep, ep + 1);
             proofs.push(SingleAppendOnlyProof {
                 inserted: leaves,
                 unchanged_nodes: unchanged,
